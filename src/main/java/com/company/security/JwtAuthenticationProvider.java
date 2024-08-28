@@ -1,0 +1,81 @@
+package com.company.security;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import javax.crypto.SecretKey;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class JwtAuthenticationProvider implements AuthenticationProvider {
+
+
+    @Override
+    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+        // Логика аутентификации с использованием токена
+        String token = (String) authentication.getCredentials();
+        if (validateToken(token)) {
+            return createAuthentication(token);
+        } else {
+            throw new BadCredentialsException("Invalid JWT token");
+        }
+    }
+
+    @Override
+    public boolean supports(Class<?> authentication) {
+        return JwtAuthenticationToken.class.isAssignableFrom(authentication);
+    }
+
+    public boolean validateToken(String token) {
+        // Логика верификации токена
+        try{
+            Jwts.parser()
+                    .setSigningKey(getSigningKey()) // DEPRECATED!!!!
+                    .build()
+                    .parseSignedClaims(token);
+            return true;
+        }catch (Exception e){
+            System.out.println("exception occurred with validate token");
+            return false;
+        }
+    }
+
+    public Authentication createAuthentication(String token) {
+        // Логика создания объекта Authentication на основе токена
+        UserDetails userDetails = extractUserDetailsFromToken(token);
+        return new JwtAuthenticationToken(userDetails, token, userDetails.getAuthorities());
+    }
+
+    private UserDetails extractUserDetailsFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(getSigningKey()) //DEPRECATED!!!!
+                .build()
+                .parseClaimsJws(token)//DEPRECATED!!!!
+                .getBody();//DEPRECATED!!!!
+
+        String username = claims.getSubject();
+        // Создайте или загрузите пользователя на основе имени пользователя из claims
+        return new User(username, "", getAuthoritiesFromClaims(claims));
+    }
+
+    private SecretKey getSigningKey() {
+        return Jwts.SIG.HS256.key().build();
+    }
+
+
+
+    private Collection<? extends GrantedAuthority> getAuthoritiesFromClaims(Claims claims) {
+        // Пример получения ролей из claims и преобразования их в GrantedAuthority
+        List<String> roles = claims.get("roles", List.class);
+        return roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+    }
+}
