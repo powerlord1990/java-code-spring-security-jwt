@@ -1,7 +1,9 @@
 package com.company.security;
 
+import com.company.security.utils.JwtUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
@@ -10,14 +12,15 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Component
 public class JwtAuthenticationProvider implements AuthenticationProvider {
-
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -52,6 +55,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     public Authentication createAuthentication(String token) {
         // Логика создания объекта Authentication на основе токена
         UserDetails userDetails = extractUserDetailsFromToken(token);
+        // Создание объекта Authentication
         return new JwtAuthenticationToken(userDetails, token, userDetails.getAuthorities());
     }
 
