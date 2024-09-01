@@ -3,7 +3,6 @@ package com.company.security;
 import com.company.security.utils.JwtUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
@@ -14,7 +13,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
+import java.security.Key;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,14 +39,14 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
 
     public boolean validateToken(String token) {
         // Логика верификации токена
-        try{
-            Jwts.parser()
-                    .setSigningKey(getSigningKey()) // DEPRECATED!!!!
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
                     .build()
-                    .parseSignedClaims(token);
+                    .parseClaimsJws(token);
             return true;
-        }catch (Exception e){
-            System.out.println("exception occurred with validate token");
+        } catch (Exception e) {
+            System.out.println("exception occurred with validate token: " + e.getMessage());
             return false;
         }
     }
@@ -60,25 +59,21 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     }
 
     private UserDetails extractUserDetailsFromToken(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(getSigningKey()) //DEPRECATED!!!!
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
                 .build()
-                .parseClaimsJws(token)//DEPRECATED!!!!
-                .getBody();//DEPRECATED!!!!
+                .parseClaimsJws(token)
+                .getBody(); // Получение тела из JWT
 
         String username = claims.getSubject();
-        // Создайте или загрузите пользователя на основе имени пользователя из claims
         return new User(username, "", getAuthoritiesFromClaims(claims));
     }
 
-    private SecretKey getSigningKey() {
-        return Jwts.SIG.HS256.key().build();
+    private Key getSigningKey() {
+        return JwtUtil.getSigningKey();
     }
 
-
-
     private Collection<? extends GrantedAuthority> getAuthoritiesFromClaims(Claims claims) {
-        // Пример получения ролей из claims и преобразования их в GrantedAuthority
         List<String> roles = claims.get("roles", List.class);
         return roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
     }
