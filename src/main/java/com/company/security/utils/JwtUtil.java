@@ -66,27 +66,27 @@ public class JwtUtil {
                 .getExpiration()
                 .before(new Date());
     }
-
-    private static String extractUsername(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(SIGNING_KEY)
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
-    }
-
-    public static String generateRefreshToken(UserDetails userDetails) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + Duration.ofDays(7).toMillis());
-
-        return Jwts.builder()
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(SIGNING_KEY)
-                .compact();
-    }
+//
+//    private static String extractUsername(String token) {
+//        return Jwts.parserBuilder()
+//                .setSigningKey(SIGNING_KEY)
+//                .build()
+//                .parseClaimsJws(token)
+//                .getBody()
+//                .getSubject();
+//    }
+//
+//    public static String generateRefreshToken(UserDetails userDetails) {
+//        Date now = new Date();
+//        Date expiryDate = new Date(now.getTime() + Duration.ofDays(7).toMillis());
+//
+//        return Jwts.builder()
+//                .setSubject(userDetails.getUsername())
+//                .setIssuedAt(now)
+//                .setExpiration(expiryDate)
+//                .signWith(SIGNING_KEY)
+//                .compact();
+//    }
 
     public static String refreshToken(String refreshToken) {
         Claims claims = Jwts.parserBuilder()

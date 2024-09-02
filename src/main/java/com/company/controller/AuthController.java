@@ -2,9 +2,9 @@ package com.company.controller;
 
 import com.company.dto.AuthRequest;
 import com.company.dto.AuthResponse;
+import com.company.dto.ChangeRoleRequest;
 import com.company.entity.User;
 import com.company.security.utils.JwtUtil;
-import com.company.service.CustomUserService;
 import com.company.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,12 +27,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
-    private final JwtUtil jwtUtil;
-
     private final UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@RequestBody AuthRequest authRequest){
+    public ResponseEntity<User> registerUser(@RequestBody AuthRequest authRequest) {
         return ResponseEntity.ok(userService.registerUser(authRequest));
     }
 
@@ -43,10 +41,12 @@ public class AuthController {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
             );
-
+            if (authentication != null && authentication.isAuthenticated()) {
+                log.info("User {} logged in successfully.", authRequest.getUsername());
+            }
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-            String jwt = jwtUtil.generateToken(userDetails);
+            String jwt = JwtUtil.generateToken(userDetails);
 
             return ResponseEntity.ok(new AuthResponse(jwt));
         } catch (AuthenticationException e) {
@@ -56,11 +56,19 @@ public class AuthController {
 
     @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshToken(@RequestBody String refreshToken) {
+        String newToken = null;
         try {
-            String newToken = JwtUtil.refreshToken(refreshToken);
-            return ResponseEntity.ok(newToken);
+            if (JwtUtil.validateToken(refreshToken)) {
+                newToken = JwtUtil.refreshToken(refreshToken);
+            }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid refresh token");
         }
+        return ResponseEntity.ok(newToken);
+    }
+    @PostMapping("/change-role")
+    public ResponseEntity<Void> changeRole(@RequestBody ChangeRoleRequest request){
+        userService.changeRole(request);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

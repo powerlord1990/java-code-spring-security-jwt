@@ -34,7 +34,7 @@ public class SecurityConfig {
                 .authenticationProvider(jwtAuthenticationProvider)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/public/**", "/auth/**").permitAll()
-                        .requestMatchers("/admin/**").hasRole("SUPER_ADMIN")
+                        .requestMatchers("/admin/**", "/change-role").hasRole("SUPER_ADMIN")
                         .requestMatchers("/moderator/**").hasRole("MODERATOR")
                         .anyRequest().authenticated()
                 );
