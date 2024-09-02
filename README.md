@@ -1,90 +1,30 @@
-# java-code-spring-security-jwt
+Практическое задание - Spring security - настройка доступа
+JWT-аутентификация:
 
-Реализуйте приложение с авторизацией через JWT. Ниже приведена часть кода - допишите его.
+Интегрируйте генерацию и проверку JWT-токенов для аутентификации пользователей. Передайте JWT-токен в ответ при успешной аутентификации, и используйте его для последующих запросов.
 
-<dependency>
-    <groupId>io.jsonwebtoken</groupId>
-    <artifactId>jjwt</artifactId>
-    <version>0.11.5</version>
-</dependency>
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+Кастомные роли:
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String token = extractTokenFromRequest(request);
+Создайте несколько кастомных ролей, таких как "MODERATOR" и "SUPER_ADMIN". Настройте доступ к определенным эндпоинтам для пользователей с определенными ролями.
 
-        if (token != null && validateToken(token)) {
-            Authentication authentication = createAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-        }
+Разделение доступа на уровне методов:
 
-        filterChain.doFilter(request, response);
-    }
+В классах контроллеров определите методы, к которым может иметь доступ только конкретная роль. Настройте Spring Security для учета ролей при доступе к этим методам.
 
-    private String extractTokenFromRequest(HttpServletRequest request) {
-        // Логика извлечения токена из запроса (например, из заголовка Authorization)
-    }
+Поддержка аутентификации:
 
-    private boolean validateToken(String token) {
-        // Логика верификации токена
-    }
+Реализуйте поддержку аутентификации через механизмы JWT-токенов.
 
-    private Authentication createAuthentication(String token) {
-        // Логика создания объекта Authentication на основе токена
-    }
-}
-public class JwtAuthenticationProvider implements AuthenticationProvider {
+Проверка срока действия токена:
 
-    @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        // Логика аутентификации с использованием токена
-    }
+Добавьте проверку срока действия JWT-токена и обработайте его истечение.
 
-    @Override
-    public boolean supports(Class<?> authentication) {
-        return JwtAuthenticationToken.class.isAssignableFrom(authentication);
-    }
-}
-@Override
-protected void configure(HttpSecurity http) throws Exception {
-http
-.addFilterBefore(new JwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-.authenticationProvider(new JwtAuthenticationProvider())
-.authorizeRequests()
-.antMatchers("/public/**").permitAll()
-.anyRequest().authenticated()
-.and()
-.formLogin()
-.loginPage("/login")
-.permitAll()
-.and()
-.logout()
-.logoutUrl("/logout")
-.permitAll();
-}
-public class JwtUtil {
+Логирование и отслеживание действий:
 
-    public static String generateToken(UserDetails userDetails) {
-        // Логика генерации JWT
-    }
+Интегрируйте логирование действий пользователей, например, входа в систему и изменения ролей.
 
-    public static boolean validateToken(String token, UserDetails userDetails) {
-        // Логика проверки JWT
-    }
-}
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+Дополнительные меры безопасности:
 
-    // ...
+Используйте HTTPS для обеспечения безопасной передачи данных.
 
-    private Authentication createAuthentication(String token) {
-        // Получение информации о пользователе из токена
-        UserDetails userDetails = extractUserDetailsFromToken(token);
-
-        // Создание объекта Authentication
-        return new JwtAuthenticationToken(userDetails, token, userDetails.getAuthorities());
-    }
-
-    private UserDetails extractUserDetailsFromToken(String token) {
-        // Логика извлечения информации о пользователе из токена
-    }
-}
+Реализуйте механизм блокировки аккаунтов после нескольких неудачных попыток входа.
